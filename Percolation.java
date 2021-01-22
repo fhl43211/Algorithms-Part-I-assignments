@@ -26,46 +26,48 @@ import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
 
-    private int _n; // size;
-    private boolean[] _cellStatus; // cell status
-    private int _totalOpenCells; // count number of total open cells
-    private WeightedQuickUnionUF _uf;
-    private int _topLoc; // Location of the virtual top node
-    private int _bottomLoc; // Location of the virtual bottom node
-
-    // calculate the location index of (row, col)
-    // returns (row-1)*_n + col;
-    private int calculateLoc(int row, int col) {
-        if (!validRange(row) || !validRange(col)) {
-            throw new IllegalArgumentException(
-                    "index indexed by " + row + " or " + col + " is not between 1 and " + _n);
-        }
-        return (row - 1) * _n + col;
-    }
-
-    // check if the input col or row is valid
-    private boolean validRange(int rc) {
-        return rc >= 1 && rc <= _n;
-    }
+    private final int m_n; // size;
+    private final boolean[] m_cellStatus; // cell status
+    private int m_totalCounts; // count number of total open cells
+    private final WeightedQuickUnionUF m_percolates; // the union for determination of percolation
+    private final WeightedQuickUnionUF m_full; // the union to determine isFull?
+    private final int m_topLoc; // Location of the virtual top node
+    private final int m_bottomLoc; // Location of the virtual bottom node
 
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
         if (n <= 0)
             throw new IllegalArgumentException("Size " + n + " must be greater than zero");
-        _n = n;
+        m_n = n;
         // totalSize = real size of blocks + 2 virtual nodes
-        int totalSize = _n * _n + 2;
-        _cellStatus = new boolean[totalSize];
-        _totalOpenCells = 0;
+        int totalSize = m_n * m_n + 2;
+        m_cellStatus = new boolean[totalSize];
+        m_totalCounts = 0;
         // Index 0 is refered to top virtual node and index totalSize-1 is refered to
         // down virtual node
-        // Each loc index is calculated by (row-1)*_n + col;
-        _uf = new WeightedQuickUnionUF(totalSize);
-        _topLoc = 0;
-        _bottomLoc = totalSize - 1;
+        // Each loc index is calculated by (row-1)*m_n + col;
+        m_percolates = new WeightedQuickUnionUF(totalSize);
+        m_full = new WeightedQuickUnionUF(totalSize - 1); // Full cannot be achieved by a single path from the virtual bottom node
+        m_topLoc = 0;
+        m_bottomLoc = totalSize - 1;
         // Preset the virtual top and bottom node to be open
-        _cellStatus[_topLoc] = true;
-        _cellStatus[_bottomLoc] = true;
+        m_cellStatus[m_topLoc] = true;
+        m_cellStatus[m_bottomLoc] = true;
+    }
+
+    // calculate the location index of (row, col)
+    // returns (row-1)*m_n + col;
+    private int calculateLoc(int row, int col) {
+        if (!validRange(row) || !validRange(col)) {
+            throw new IllegalArgumentException(
+                    "index indexed by " + row + " or " + col + " is not between 1 and " + m_n);
+        }
+        return (row - 1) * m_n + col;
+    }
+
+    // check if the input col or row is valid
+    private boolean validRange(int rc) {
+        return rc >= 1 && rc <= m_n;
     }
 
     // opens the site (row, col) if it is not open already
@@ -73,56 +75,63 @@ public class Percolation {
         if (isOpen(row, col)) {
             return;
         }
-        ++_totalOpenCells;
+        ++m_totalCounts;
         int loc = calculateLoc(row, col);
-        _cellStatus[loc] = true;
+        m_cellStatus[loc] = true;
         // Union it with the neighbors
         int[] directions = { -1, 1 };
         for (int rowDir : directions) {
             int newRow = row + rowDir;
             if (validRange(newRow) && isOpen(newRow, col)) {
-                _uf.union(calculateLoc(newRow, col), loc);
+                m_percolates.union(calculateLoc(newRow, col), loc);
+                m_full.union(calculateLoc(newRow, col), loc);
             }
         }
         for (int colDir : directions) {
             int newCol = col + colDir;
             if (validRange(newCol) && isOpen(row, newCol)) {
-                _uf.union(calculateLoc(row, newCol), loc);
+                m_percolates.union(calculateLoc(row, newCol), loc);
+                m_full.union(calculateLoc(row, newCol), loc);
             }
         }
         // If it is the top row, connect it to the virtual top node
         if (row == 1) {
-            _uf.union(_topLoc, loc);
+            m_percolates.union(m_topLoc, loc);
+            m_full.union(m_topLoc, loc);
         }
-        // If it is the bottom row, connect it to the virtual bottom node
-        if (row == _n) {
-            _uf.union(_bottomLoc, loc);
+        // If it is the bottom row and it is full, connect it to the virtual bottom node
+        if (row == m_n) {
+            m_percolates.union(m_bottomLoc, loc);
+            // m_full will not union bottom loc with loc to avoid a single path from the bottom loc
         }
     }
 
     // is the site (row, col) open?
     public boolean isOpen(int row, int col) {
-        return _cellStatus[calculateLoc(row, col)];
+        return m_cellStatus[calculateLoc(row, col)];
     }
 
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
         int loc = calculateLoc(row, col);
-        return _uf.find(0) == _uf.find(loc);
+        // Because there is no such thing as virtual bottom loc in m_full
+        // if m_full and virtual top node has shared parent, then it is full
+        return m_full.find(m_topLoc) == m_full.find(loc);
 
     }
 
     // returns the number of open sites
     public int numberOfOpenSites() {
-        return _totalOpenCells;
+        return m_totalCounts;
     }
 
     // does the system percolate?
     public boolean percolates() {
-        return _uf.find(_topLoc) == _uf.find(_bottomLoc);
+        return m_percolates.find(m_topLoc) == m_percolates.find(m_bottomLoc);
     }
 
     // test client (optional)
     public static void main(String[] args) {
+        // Left as blank
     }
 }
