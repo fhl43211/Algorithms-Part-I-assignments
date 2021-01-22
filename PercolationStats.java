@@ -27,8 +27,8 @@ import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
-    private double[] _trialResults; // Stores the all the trial results;
-    private double _sqrtT; // Squre root of total trial times T
+    private final double[] m_trialResults; // Stores the all the trial results;
+    private final double m_sqrtT; // Squre root of total trial times T
 
     // perform independent trials on an n-by-n grid
     public PercolationStats(int n, int trials) {
@@ -36,8 +36,8 @@ public class PercolationStats {
             throw new IllegalArgumentException(
                     "Both grid size " + n + " and trials " + trials + " must be greater than zero");
         }
-        _trialResults = new double[trials];
-        _sqrtT = java.lang.Math.sqrt(trials);
+        m_trialResults = new double[trials];
+        m_sqrtT = Math.sqrt(trials);
         double realSize = n * n;
         for (int i = 0; i < trials; ++i) {
             Percolation percolate = new Percolation(n);
@@ -47,28 +47,28 @@ public class PercolationStats {
                 percolate.open(row, col);
             }
             // calculate the percentage of open sites
-            _trialResults[i] = 1.0 * percolate.numberOfOpenSites() / realSize;
+            m_trialResults[i] = 1.0 * percolate.numberOfOpenSites() / realSize;
         }
     }
 
     // sample mean of percolation threshold
     public double mean() {
-        return StdStats.mean(_trialResults);
+        return StdStats.mean(m_trialResults);
     }
 
     // sample standard deviation of percolation threshold
     public double stddev() {
-        return StdStats.stddev(_trialResults);
+        return StdStats.stddev(m_trialResults);
     }
 
     // low endpoint of 95% confidence interval
     public double confidenceLo() {
-        return mean() - 1.96 * stddev() / _sqrtT;
+        return mean() - 1.96 * stddev() / m_sqrtT;
     }
 
     // high endpoint of 95% confidence interval
     public double confidenceHi() {
-        return mean() + 1.96 * stddev() / _sqrtT;
+        return mean() + 1.96 * stddev() / m_sqrtT;
     }
 
     // test client (see below)
