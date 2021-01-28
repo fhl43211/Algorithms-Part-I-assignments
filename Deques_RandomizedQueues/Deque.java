@@ -1,3 +1,4 @@
+
 /**
  * MIT License
  * 
@@ -30,24 +31,24 @@ public class Deque<Item> implements Iterable<Item> {
     private Node _last;
     private int _size;
 
+    // construct an empty deque
+    public Deque() {
+        _size = 0;
+        _first = null;
+        _last = null;
+    }
+
     private class Node {
+        private final Item _value;
+        private Node _next;
+        private Node _prev;
+
         Node(Item item) {
             if (item == null) {
                 throw new IllegalArgumentException("Cannot add null item");
             }
             _value = item;
         }
-
-        private Item _value;
-        private Node _next;
-        private Node _prev;
-    }
-
-    // construct an empty deque
-    public Deque() {
-        _size = 0;
-        _first = null;
-        _last = null;
     }
 
     // is the deque empty?

@@ -1,3 +1,4 @@
+
 /**
  * MIT License
  * 
@@ -35,6 +36,14 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private int _endLoc;
     private int _size;
 
+    // construct an empty randomized queue
+    public RandomizedQueue() {
+        _vec = (Item[]) new Object[INIT_CAPACITY];
+        _firstLoc = 0;
+        _endLoc = 0;
+        _size = 0;
+    }
+
     /**
      * \brief Resize and reset the front loc to one;
      * 
@@ -54,15 +63,18 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private class RandomizedQueueIterator implements Iterator<Item> {
         Item[] iteratorCopy;
-        int current = _firstLoc;
+        int current = 0;
 
         private RandomizedQueueIterator() {
-            iteratorCopy = _vec;
-            StdRandom.shuffle(iteratorCopy, _firstLoc, _endLoc);
+            iteratorCopy = (Item[]) new Object[_size];
+            for (int i = 0; i < _size; ++i) {
+                iteratorCopy[i] = _vec[i + _firstLoc];
+            }
+            StdRandom.shuffle(iteratorCopy);
         }
 
         public boolean hasNext() {
-            return current != _endLoc;
+            return current < _size;
         }
 
         public Item next() {
@@ -71,14 +83,6 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             }
             return iteratorCopy[current++];
         }
-    }
-
-    // construct an empty randomized queue
-    public RandomizedQueue() {
-        _vec = (Item[]) new Object[INIT_CAPACITY];
-        _firstLoc = 0;
-        _endLoc = 0;
-        _size = 0;
     }
 
     // is the randomized queue empty?
@@ -138,9 +142,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         test.enqueue(3);
         test.enqueue(4);
         test.enqueue(5);
-        for (var a : test) {
-            System.out.println(a);
-        }
+        for (var a : test)
+            for (var b : test)
+                System.out.print(a + "-" + b + " ");
+        System.out.println();
         System.out.println(test.sample());
         System.out.println(test.sample());
         System.out.println(test.sample());
