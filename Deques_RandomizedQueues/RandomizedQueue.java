@@ -32,16 +32,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     // initial capacity of underlying resizing array
     private static final int INIT_CAPACITY = 8;
     private Item[] _vec;
-    private int _firstLoc;
     private int _endLoc;
-    private int _size;
 
     // construct an empty randomized queue
     public RandomizedQueue() {
         _vec = (Item[]) new Object[INIT_CAPACITY];
-        _firstLoc = 0;
         _endLoc = 0;
-        _size = 0;
     }
 
     /**
@@ -50,14 +46,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
      * @param newCapacity
      * @param offset
      */
-    private void resize(int newCapacity, int offset) {
-        assert newCapacity >= _size;
+    private void resize(int newCapacity) {
+        assert newCapacity >= _endLoc;
         Item[] newVec = (Item[]) new Object[newCapacity];
-        for (int i = 0; i < _size; ++i) {
-            newVec[i] = _vec[i + offset];
+        for (int i = 0; i < _endLoc; ++i) {
+            newVec[i] = _vec[i];
         }
-        _firstLoc = 0;
-        _endLoc = _size;
         _vec = newVec;
     }
 
@@ -66,15 +60,15 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         int current = 0;
 
         private RandomizedQueueIterator() {
-            iteratorCopy = (Item[]) new Object[_size];
-            for (int i = 0; i < _size; ++i) {
-                iteratorCopy[i] = _vec[i + _firstLoc];
+            iteratorCopy = (Item[]) new Object[_endLoc];
+            for (int i = 0; i < _endLoc; ++i) {
+                iteratorCopy[i] = _vec[i];
             }
             StdRandom.shuffle(iteratorCopy);
         }
 
         public boolean hasNext() {
-            return current < _size;
+            return current < _endLoc;
         }
 
         public Item next() {
@@ -87,12 +81,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // is the randomized queue empty?
     public boolean isEmpty() {
-        return _size == 0;
+        return _endLoc == 0;
     }
 
     // return the number of items on the randomized queue
     public int size() {
-        return _size;
+        return _endLoc;
     }
 
     // add the item
@@ -103,10 +97,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         // In case it goes past the capacity, move it to the front if it is not at and
         // double the capacity.
         if (_endLoc >= _vec.length) {
-            resize(_vec.length * 2, _firstLoc);
+            resize(_vec.length * 2);
         }
         _vec[_endLoc++] = item;
-        ++_size;
     }
 
     // remove and return a random item
@@ -114,11 +107,14 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("Cannot dequeue from an empty queue");
         }
-        if (_size < _vec.length / 4 && _vec.length >= INIT_CAPACITY) {
-            resize(_vec.length / 2, _firstLoc);
+        if (_endLoc < _vec.length / 4 && _vec.length >= INIT_CAPACITY) {
+            resize(_vec.length / 2);
         }
-        --_size;
-        return _vec[_firstLoc++];
+        int chosen = StdRandom.uniform(_endLoc);
+        --_endLoc;
+        Item temp = _vec[chosen];
+        _vec[chosen] = _vec[_endLoc];
+        return temp;
     }
 
     // return a random item (but do not remove it)
@@ -126,7 +122,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("Cannot sample from an empty queue");
         }
-        return _vec[StdRandom.uniform(_firstLoc, _endLoc)];
+        return _vec[StdRandom.uniform(_endLoc)];
     }
 
     // return an independent iterator over items in random order
@@ -142,20 +138,22 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         test.enqueue(3);
         test.enqueue(4);
         test.enqueue(5);
-        for (var a : test)
+        for (var a : test) {
             for (var b : test)
                 System.out.print(a + "-" + b + " ");
-        System.out.println();
+            System.out.println();
+        }
         System.out.println(test.sample());
         System.out.println(test.sample());
         System.out.println(test.sample());
         System.out.println(test.size());
         System.out.println(test.isEmpty());
-        test.dequeue();
-        test.dequeue();
-        test.dequeue();
-        test.dequeue();
-        test.dequeue();
+        System.out.println("Dequeue ");
+        System.out.println(test.dequeue());
+        System.out.println(test.dequeue());
+        System.out.println(test.dequeue());
+        System.out.println(test.dequeue());
+        System.out.println(test.dequeue());
         System.out.println(test.size());
         System.out.println(test.isEmpty());
     }
