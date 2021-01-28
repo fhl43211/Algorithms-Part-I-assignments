@@ -114,6 +114,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         --_endLoc;
         Item temp = _vec[chosen];
         _vec[chosen] = _vec[_endLoc];
+        _vec[_endLoc] = null;
         return temp;
     }
 

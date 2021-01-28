@@ -1,5 +1,3 @@
-import edu.princeton.cs.algs4.StdIn;
-
 /**
  * MIT License
  * 
@@ -24,18 +22,27 @@ import edu.princeton.cs.algs4.StdIn;
  * SOFTWARE.
  */
 
+import edu.princeton.cs.algs4.StdIn;
+import edu.princeton.cs.algs4.StdRandom;
+
 public class Permutation {
     public static void main(String[] args) {
-        int maxSize = Integer.valueOf(args[0]);
-        RandomizedQueue<String> randomQueue = new RandomizedQueue<String>();
+        int maxSize = Integer.parseInt(args[0]);
+        Deque<String> randomQueue = new Deque<String>();
         while (!StdIn.isEmpty()) {
-            randomQueue.enqueue(StdIn.readString());
+            if (randomQueue.size() == maxSize) {
+                if (StdRandom.bernoulli())
+                    randomQueue.removeFirst();
+                else
+                    randomQueue.removeLast();
+            }
+            if (StdRandom.bernoulli())
+                randomQueue.addFirst(StdIn.readString());
+            else
+                randomQueue.addLast(StdIn.readString());
         }
         for (String each : randomQueue) {
-            if (maxSize == 0)
-                break;
             System.out.println(each);
-            --maxSize;
         }
     }
 }
