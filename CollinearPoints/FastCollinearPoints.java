@@ -6,9 +6,6 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class FastCollinearPoints {
     private LineSegment[] _segments;
-    // Use extra spaces because the LineSegment does not have getter to report end points.
-    private Point[] _segmentStartPoints;
-    private Double[] _segmentSlopes;
 
     // finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
@@ -27,45 +24,44 @@ public class FastCollinearPoints {
                 throw new IllegalArgumentException("Input points must be distinct");
         }
         _segments = new LineSegment[0];
-        _segmentStartPoints = new Point[0];
-        _segmentSlopes = new Double[0];
         double baseSlope;
         Point basePoint;
         int totalSize = pointsCopy.length;
-        Point[] copy = new Point[pointsCopy.length];
+        Point[] slopeOrderPoints = new Point[pointsCopy.length];
         for (int i = 0; i < totalSize - 3; ++i) {
             basePoint = pointsCopy[i];
-            for (int copyI = i+1; copyI < pointsCopy.length; ++copyI) {
-                copy[copyI] = pointsCopy[copyI]; // O(N^2)
+            for (int copyI = 0; copyI < pointsCopy.length; ++copyI) {
+                slopeOrderPoints[copyI] = pointsCopy[copyI]; // O(N^2)
             }
-            Arrays.sort(copy, i+1, totalSize, basePoint.slopeOrder()); // O(N^2logN)
-            baseSlope = basePoint.slopeTo(copy[i+1]);
-            int colinearCount = 2;
-            int lastLoc = i+1;
-            for (int j = i+2; j < totalSize; ++j) {
-                if (basePoint.slopeTo(copy[j]) == baseSlope && !(checkColinearWithExistingSegments(basePoint, baseSlope))) {
-                    ++colinearCount;
-                    lastLoc = j;
+            Arrays.sort(slopeOrderPoints, 0, totalSize, basePoint.slopeOrder()); // O(N^2logN)
+            baseSlope = basePoint.slopeTo(slopeOrderPoints[1]);
+            int startIndex = 1;
+            int endIndex = 2;
+            for (int j = 2; j < totalSize; ++j) {
+                if (basePoint.slopeTo(slopeOrderPoints[j]) == baseSlope) {
+                    ++endIndex;
                 }
                 else {
-                    if (colinearCount >= 4) {
-                        addSegment(basePoint, copy[lastLoc], baseSlope);
+                    if (endIndex - startIndex >= 3) {
+                        addSegment(basePoint, slopeOrderPoints, startIndex, endIndex);
                     }
-                    baseSlope = basePoint.slopeTo(copy[j]);
-                    colinearCount = 2;
+                    startIndex = j;
+                    endIndex = j+1;
+                    baseSlope = basePoint.slopeTo(slopeOrderPoints[j]);
                 }
             }
-            if (colinearCount >= 4) {
-                addSegment(basePoint, copy[lastLoc], baseSlope);
+            if (endIndex - startIndex >= 3) {
+                addSegment(basePoint, slopeOrderPoints, startIndex, endIndex);
             }
         }
     }
 
-    private void addSegment(Point startPoint, Point endPoint, double thisSlope) {
-        if (checkColinearWithExistingSegments(startPoint, thisSlope)) return;
-        _segmentStartPoints = addPoint(startPoint, _segmentStartPoints);
-        _segmentSlopes = addSlope(thisSlope, _segmentSlopes);
-        LineSegment newSeg = new LineSegment(startPoint, endPoint);
+    private void addSegment(Point startPoint, Point[] slopeOrderPoints, int startIndex, int endIndex) {
+        Point segmentEnd = slopeOrderPoints[endIndex-1];
+        Arrays.sort(slopeOrderPoints, startIndex, endIndex);
+        if (startPoint.compareTo(slopeOrderPoints[startIndex]) > 0)
+            return;
+        LineSegment newSeg = new LineSegment(startPoint, segmentEnd);
         LineSegment[] newSegs = new LineSegment[_segments.length+1];
         for (int i = 0; i < _segments.length; ++i)
         {
@@ -83,32 +79,6 @@ public class FastCollinearPoints {
             newCopy[i] = inputPoints[i];
         }
         return newCopy;
-    }
-
-    private static Point[] addPoint(Point newPoint, Point[] vec) {
-        Point[] newPoints = copyPoints(vec, vec.length+1, 0, vec.length);
-        newPoints[vec.length] = newPoint;
-        return newPoints;
-    }
-
-    private static Double[] addSlope(Double newSlope, Double[] vec) {
-        Double[] newSlopes = new Double[vec.length+1];
-        for (int i = 0; i < vec.length; ++i) {
-            newSlopes[i] = vec[i];
-        }
-        newSlopes[vec.length] = newSlope;
-        return newSlopes;
-    }
-
-    // Check if the input segment, identified by the start and end points, is colinear with any of the existing segments
-    private boolean checkColinearWithExistingSegments(Point startPoint, double thisSlope) {
-        assert _segmentStartPoints.length == _segmentSlopes.length;
-        for (int i = 0; i < _segmentStartPoints.length; ++i) {
-            if (startPoint.slopeTo(_segmentStartPoints[i]) == _segmentSlopes[i] && (_segmentSlopes[i] == thisSlope)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // the number of line segments
