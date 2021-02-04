@@ -40,10 +40,10 @@ public class FastCollinearPoints {
             }
             Arrays.sort(copy, i+1, totalSize, basePoint.slopeOrder()); // O(N^2logN)
             baseSlope = basePoint.slopeTo(copy[i+1]);
+            if (checkColinearWithExistingSegments(basePoint, baseSlope)) continue;
             int colinearCount = 2;
             int lastLoc = i+1;
             for (int j = i+2; j < totalSize; ++j) {
-
                 if (basePoint.slopeTo(copy[j]) == baseSlope) {
                     ++colinearCount;
                     lastLoc = j;
