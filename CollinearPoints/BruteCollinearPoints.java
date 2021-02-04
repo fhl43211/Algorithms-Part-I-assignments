@@ -6,6 +6,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class BruteCollinearPoints {
     private LineSegment[] _segments;
+    private int _segmentsSize;
     // finds all line segments containing 4 points
     public BruteCollinearPoints(Point[] points) {
         if (points == null) {
@@ -21,7 +22,8 @@ public class BruteCollinearPoints {
             if (pointsCopy[i].compareTo(pointsCopy[i-1]) == 0)
                 throw new IllegalArgumentException("Input points must be distinct");
         }
-        _segments = new LineSegment[0];
+        _segments = new LineSegment[8];
+        _segmentsSize = 0;
         double firstSlope;
         Point basePoint;
         int totalSize = pointsCopy.length;
@@ -37,26 +39,30 @@ public class BruteCollinearPoints {
                         if (basePoint.slopeTo(pointsCopy[l]) != firstSlope) {
                             continue;
                         }
-                        addSegment(new LineSegment(basePoint, pointsCopy[l]));
+                        addSegment(basePoint, pointsCopy[l]);
                     }
                 }
             }
         }
     }
 
-    private void addSegment(LineSegment newSeg) {
-        LineSegment[] newSegs = new LineSegment[_segments.length+1];
-        for (int i = 0; i < _segments.length; ++i)
-        {
-            newSegs[i] = _segments[i];
+    private void addSegment(Point startPoint, Point endPoint) {
+        LineSegment newSeg = new LineSegment(startPoint, endPoint);
+        if (_segments.length == _segmentsSize) {
+            LineSegment[] newSegs = new LineSegment[_segmentsSize*2];
+            for (int i = 0; i < _segmentsSize; ++i)
+            {
+                newSegs[i] = _segments[i];
+            }
+            _segments = newSegs;
         }
-        newSegs[_segments.length] = newSeg;
-        _segments = newSegs;
+        _segments[_segmentsSize] = newSeg;
+        ++_segmentsSize;
     }
 
     // the number of line segments
     public int numberOfSegments() {
-        return _segments.length;
+        return _segmentsSize;
     }
 
     private Point[] copyPoints(Point[] inputPoints, int newLength, int startIndex, int endIndex) {
@@ -71,8 +77,8 @@ public class BruteCollinearPoints {
 
     // the line segments
     public LineSegment[] segments() {
-        LineSegment[] copy = new LineSegment[_segments.length];
-        for (int i = 0; i < _segments.length; ++i)
+        LineSegment[] copy = new LineSegment[_segmentsSize];
+        for (int i = 0; i < _segmentsSize; ++i)
         {
             copy[i] = _segments[i];
         }

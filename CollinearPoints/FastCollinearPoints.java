@@ -6,6 +6,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class FastCollinearPoints {
     private LineSegment[] _segments;
+    private int _segmentsSize;
 
     // finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
@@ -23,7 +24,8 @@ public class FastCollinearPoints {
             if (pointsCopy[i].compareTo(pointsCopy[i-1]) == 0)
                 throw new IllegalArgumentException("Input points must be distinct");
         }
-        _segments = new LineSegment[0];
+        _segments = new LineSegment[8];
+        _segmentsSize = 0;
         double baseSlope;
         Point basePoint;
         int totalSize = pointsCopy.length;
@@ -39,7 +41,8 @@ public class FastCollinearPoints {
             int endIndex = 2;
             boolean skip = basePoint.compareTo(slopeOrderPoints[1]) > 0;
             for (int j = 2; j < totalSize; ++j) {
-                if (basePoint.slopeTo(slopeOrderPoints[j]) == baseSlope) {
+                double currentSlope = basePoint.slopeTo(slopeOrderPoints[j]);
+                if (currentSlope == baseSlope) {
                     if (basePoint.compareTo(slopeOrderPoints[j]) > 0)
                         skip = true;
                     ++endIndex;
@@ -51,7 +54,7 @@ public class FastCollinearPoints {
                     skip = basePoint.compareTo(slopeOrderPoints[j]) > 0;
                     startIndex = j;
                     endIndex = j+1;
-                    baseSlope = basePoint.slopeTo(slopeOrderPoints[j]);
+                    baseSlope = currentSlope;
                 }
             }
             if (endIndex - startIndex >= 3 && !skip) {
@@ -62,13 +65,16 @@ public class FastCollinearPoints {
 
     private void addSegment(Point startPoint, Point endPoint) {
         LineSegment newSeg = new LineSegment(startPoint, endPoint);
-        LineSegment[] newSegs = new LineSegment[_segments.length+1];
-        for (int i = 0; i < _segments.length; ++i)
-        {
-            newSegs[i] = _segments[i];
+        if (_segments.length == _segmentsSize) {
+            LineSegment[] newSegs = new LineSegment[_segmentsSize*2];
+            for (int i = 0; i < _segmentsSize; ++i)
+            {
+                newSegs[i] = _segments[i];
+            }
+            _segments = newSegs;
         }
-        newSegs[_segments.length] = newSeg;
-        _segments = newSegs;
+        _segments[_segmentsSize] = newSeg;
+        ++_segmentsSize;
     }
 
     private static Point[] copyPoints(Point[] inputPoints, int newLength, int startIndex, int endIndex) {
@@ -83,13 +89,13 @@ public class FastCollinearPoints {
 
     // the number of line segments
     public int numberOfSegments() {
-        return _segments.length;
+        return _segmentsSize;
     }
 
     // the line segments
     public LineSegment[] segments() {
-        LineSegment[] copy = new LineSegment[_segments.length];
-        for (int i = 0; i < _segments.length; ++i)
+        LineSegment[] copy = new LineSegment[_segmentsSize];
+        for (int i = 0; i < _segmentsSize; ++i)
         {
             copy[i] = _segments[i];
         }
