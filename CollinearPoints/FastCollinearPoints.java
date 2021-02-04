@@ -15,11 +15,13 @@ public class FastCollinearPoints {
         if (points == null) {
             throw new IllegalArgumentException("Input points must not be null");
         }
-        Arrays.sort(points);
         for (int i = 0; i < points.length; ++i) {
             if (points[i] == null)
                 throw new IllegalArgumentException("At least one of the input points is null");
-            if (i > 0 && points[i] == points[i-1])
+        }
+        Arrays.sort(points); // O(NlogN)
+        for (int i = 1; i < points.length; ++i) {
+            if (points[i] == points[i-1])
                 throw new IllegalArgumentException("Input points must be distinct");
         }
         _segments = new LineSegment[0];
@@ -32,9 +34,9 @@ public class FastCollinearPoints {
         for (int i = 0; i < totalSize - 3; ++i) {
             basePoint = points[i];
             for (int copyI = i+1; copyI < points.length; ++copyI) {
-                copy[copyI] = points[copyI];
+                copy[copyI] = points[copyI]; // O(N^2)
             }
-            Arrays.sort(copy, i+1, totalSize, basePoint.slopeOrder());
+            Arrays.sort(copy, i+1, totalSize, basePoint.slopeOrder()); // O(N^2logN)
             baseSlope = basePoint.slopeTo(copy[i+1]);
             int colinearCount = 2;
             int lastLoc = i+1;
@@ -100,7 +102,12 @@ public class FastCollinearPoints {
 
     // the line segments
     public LineSegment[] segments() {
-        return _segments;
+        LineSegment[] copy = new LineSegment[_segments.length];
+        for (int i = 0; i < _segments.length; ++i)
+        {
+            copy[i] = _segments[i];
+        }
+        return copy;
     }
 
     public static void main(String[] args) {
