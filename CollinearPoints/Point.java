@@ -149,5 +149,6 @@ public class Point implements Comparable<Point> {
         Point p5 = new Point(4, 5);
         Comparator<Point> comp = p5.slopeOrder();
         assert comp.compare(p4, p1) == 0;
+        assert base.compareTo( new Point(0,0) ) == 0;
     }
 }

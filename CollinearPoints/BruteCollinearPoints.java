@@ -15,28 +15,29 @@ public class BruteCollinearPoints {
             if (points[i] == null)
                 throw new IllegalArgumentException("At least one of the input points is null");
         }
-        Arrays.sort(points); // O(NlogN)
-        for (int i = 1; i < points.length; ++i) {
-            if (points[i] == points[i-1])
+        Point[] pointsCopy = copyPoints(points, points.length, 0, points.length);
+        Arrays.sort(pointsCopy); // O(NlogN)
+        for (int i = 1; i < pointsCopy.length; ++i) {
+            if (pointsCopy[i].compareTo(pointsCopy[i-1]) == 0)
                 throw new IllegalArgumentException("Input points must be distinct");
         }
         _segments = new LineSegment[0];
         double firstSlope;
         Point basePoint;
-        int totalSize = points.length;
+        int totalSize = pointsCopy.length;
         for (int i = 0; i < totalSize; ++i) {
-            basePoint = points[i];
+            basePoint = pointsCopy[i];
             for (int j = i+1; j < totalSize; ++j) {
-                firstSlope = basePoint.slopeTo(points[j]);
+                firstSlope = basePoint.slopeTo(pointsCopy[j]);
                 for (int k = j+1; k < totalSize; ++k) {
-                    if (basePoint.slopeTo(points[k]) != firstSlope) {
+                    if (basePoint.slopeTo(pointsCopy[k]) != firstSlope) {
                         continue;
                     }
                     for (int l = k+1; l < totalSize; ++l) {
-                        if (basePoint.slopeTo(points[l]) != firstSlope) {
+                        if (basePoint.slopeTo(pointsCopy[l]) != firstSlope) {
                             continue;
                         }
-                        addSegment(new LineSegment(basePoint, points[l]));
+                        addSegment(new LineSegment(basePoint, pointsCopy[l]));
                     }
                 }
             }
@@ -56,6 +57,16 @@ public class BruteCollinearPoints {
     // the number of line segments
     public int numberOfSegments() {
         return _segments.length;
+    }
+
+    private Point[] copyPoints(Point[] inputPoints, int newLength, int startIndex, int endIndex) {
+        assert endIndex <= inputPoints.length;
+        assert newLength >= endIndex;
+        Point[] newCopy = new Point[newLength];
+        for (int i = startIndex; i < endIndex; ++i) {
+            newCopy[i] = inputPoints[i];
+        }
+        return newCopy;
     }
 
     // the line segments

@@ -19,9 +19,11 @@ public class FastCollinearPoints {
             if (points[i] == null)
                 throw new IllegalArgumentException("At least one of the input points is null");
         }
-        Arrays.sort(points); // O(NlogN)
-        for (int i = 1; i < points.length; ++i) {
-            if (points[i] == points[i-1])
+
+        Point[] pointsCopy = copyPoints(points, points.length, 0, points.length);
+        Arrays.sort(pointsCopy); // O(NlogN)
+        for (int i = 1; i < pointsCopy.length; ++i) {
+            if (pointsCopy[i].compareTo(pointsCopy[i-1]) == 0)
                 throw new IllegalArgumentException("Input points must be distinct");
         }
         _segments = new LineSegment[0];
@@ -29,12 +31,12 @@ public class FastCollinearPoints {
         _segmentEndPoints = new Point[0];
         double baseSlope;
         Point basePoint;
-        int totalSize = points.length;
-        Point[] copy = new Point[points.length];
+        int totalSize = pointsCopy.length;
+        Point[] copy = new Point[pointsCopy.length];
         for (int i = 0; i < totalSize - 3; ++i) {
-            basePoint = points[i];
-            for (int copyI = i+1; copyI < points.length; ++copyI) {
-                copy[copyI] = points[copyI]; // O(N^2)
+            basePoint = pointsCopy[i];
+            for (int copyI = i+1; copyI < pointsCopy.length; ++copyI) {
+                copy[copyI] = pointsCopy[copyI]; // O(N^2)
             }
             Arrays.sort(copy, i+1, totalSize, basePoint.slopeOrder()); // O(N^2logN)
             baseSlope = basePoint.slopeTo(copy[i+1]);
@@ -72,6 +74,16 @@ public class FastCollinearPoints {
         }
         newSegs[_segments.length] = newSeg;
         _segments = newSegs;
+    }
+
+    private Point[] copyPoints(Point[] inputPoints, int newLength, int startIndex, int endIndex) {
+        assert endIndex <= inputPoints.length;
+        assert newLength >= endIndex;
+        Point[] newCopy = new Point[newLength];
+        for (int i = startIndex; i < endIndex; ++i) {
+            newCopy[i] = inputPoints[i];
+        }
+        return newCopy;
     }
 
     private static Point[] addPoint(Point newPoint, Point[] vec) {
