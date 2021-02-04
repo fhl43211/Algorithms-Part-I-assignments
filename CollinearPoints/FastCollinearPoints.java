@@ -37,31 +37,31 @@ public class FastCollinearPoints {
             baseSlope = basePoint.slopeTo(slopeOrderPoints[1]);
             int startIndex = 1;
             int endIndex = 2;
+            boolean skip = basePoint.compareTo(slopeOrderPoints[1]) > 0;
             for (int j = 2; j < totalSize; ++j) {
                 if (basePoint.slopeTo(slopeOrderPoints[j]) == baseSlope) {
+                    if (basePoint.compareTo(slopeOrderPoints[j]) > 0)
+                        skip = true;
                     ++endIndex;
                 }
                 else {
-                    if (endIndex - startIndex >= 3) {
-                        addSegment(basePoint, slopeOrderPoints, startIndex, endIndex);
+                    if (endIndex - startIndex >= 3 && !skip) {
+                        addSegment(basePoint, slopeOrderPoints[endIndex-1]);
                     }
+                    skip = basePoint.compareTo(slopeOrderPoints[j]) > 0;
                     startIndex = j;
                     endIndex = j+1;
                     baseSlope = basePoint.slopeTo(slopeOrderPoints[j]);
                 }
             }
-            if (endIndex - startIndex >= 3) {
-                addSegment(basePoint, slopeOrderPoints, startIndex, endIndex);
+            if (endIndex - startIndex >= 3 && !skip) {
+                addSegment(basePoint, slopeOrderPoints[endIndex-1]);
             }
         }
     }
 
-    private void addSegment(Point startPoint, Point[] slopeOrderPoints, int startIndex, int endIndex) {
-        Point segmentEnd = slopeOrderPoints[endIndex-1];
-        Arrays.sort(slopeOrderPoints, startIndex, endIndex);
-        if (startPoint.compareTo(slopeOrderPoints[startIndex]) > 0)
-            return;
-        LineSegment newSeg = new LineSegment(startPoint, segmentEnd);
+    private void addSegment(Point startPoint, Point endPoint) {
+        LineSegment newSeg = new LineSegment(startPoint, endPoint);
         LineSegment[] newSegs = new LineSegment[_segments.length+1];
         for (int i = 0; i < _segments.length; ++i)
         {
