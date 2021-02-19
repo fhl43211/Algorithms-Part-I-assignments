@@ -61,6 +61,16 @@ public class KdTree {
 
     }
 
+    private RectHV formLeftSubNodeEnclosedRect(KdNode node, RectHV enclosedRect) {
+        return node.compX ? new RectHV(enclosedRect.xmin(), enclosedRect.ymin(), node.point.x(), enclosedRect.ymax())
+                : new RectHV(enclosedRect.xmin(), enclosedRect.ymin(), enclosedRect.xmax(), node.point.y());
+    }
+
+    private RectHV formRightSubNodeEnclosedRect(KdNode node, RectHV enclosedRect) {
+        return node.compX ? new RectHV(node.point.x(), enclosedRect.ymin(), enclosedRect.xmax(), enclosedRect.ymax())
+                : new RectHV(enclosedRect.xmin(), node.point.y(), enclosedRect.xmax(), enclosedRect.ymax());
+    }
+
     private void doFindNearest(KdNode node, Point2D p, RectHV enclosedRect) {
         if (node == null)
             return;
@@ -72,14 +82,8 @@ public class KdTree {
             _nearestP = node.point;
         }
         boolean goLeft = node.compX ? p.x() < node.point.x() : p.y() < node.point.y();
-        double xmin = enclosedRect.xmin();
-        double ymin = enclosedRect.ymin();
-        double xmax = enclosedRect.xmax();
-        double ymax = enclosedRect.ymax();
-        RectHV leftBranchRect = node.compX ? new RectHV(xmin, ymin, node.point.x(), ymax)
-                : new RectHV(xmin, ymin, xmax, node.point.y());
-        RectHV rightBranchRect = node.compX ? new RectHV(node.point.x(), ymin, xmax, ymax)
-                : new RectHV(xmin, node.point.y(), xmax, ymax);
+        RectHV leftBranchRect = formLeftSubNodeEnclosedRect(node, enclosedRect);
+        RectHV rightBranchRect = formRightSubNodeEnclosedRect(node, enclosedRect);
         if (goLeft) {
             doFindNearest(node.left, p, leftBranchRect);
             doFindNearest(node.right, p, rightBranchRect);
@@ -105,32 +109,25 @@ public class KdTree {
         return doContain(_root, p);
     }
 
-    private void doRange(RectHV rect, KdNode node, RectHV enclosedRect, Queue<Point2D> queue) {
+    private void doRange(RectHV rect, KdNode node, Queue<Point2D> queue) {
         if (node == null)
-            return;
-        if (!enclosedRect.intersects(rect))
             return;
         if (rect.contains(node.point)) {
             queue.enqueue(node.point);
         }
-        double xmin = enclosedRect.xmin();
-        double ymin = enclosedRect.ymin();
-        double xmax = enclosedRect.xmax();
-        double ymax = enclosedRect.ymax();
-        RectHV leftBranchRect = node.compX ? new RectHV(xmin, ymin, node.point.x(), ymax)
-                : new RectHV(xmin, ymin, xmax, node.point.y());
-
-        RectHV rightBranchRect = node.compX ? new RectHV(node.point.x(), ymin, xmax, ymax)
-                : new RectHV(xmin, node.point.y(), xmax, ymax);
-        doRange(rect, node.left, leftBranchRect, queue);
-        doRange(rect, node.right, rightBranchRect, queue);
+        boolean goLeft = node.compX ? rect.xmin() < node.point.x() : rect.ymin() < node.point.y();
+        boolean goRight = node.compX ? rect.xmax() >= node.point.x() : rect.ymax() >= node.point.y();
+        if (goLeft)
+            doRange(rect, node.left, queue);
+        if (goRight)
+            doRange(rect, node.right, queue);
     }
 
     public Iterable<Point2D> range(RectHV rect) {
         if (rect == null)
             throw new IllegalArgumentException("Cannot form range with a null RectHV");
         Queue<Point2D> queue = new Queue<Point2D>();
-        doRange(rect, _root, new RectHV(0, 0, 1, 1), queue);
+        doRange(rect, _root, queue);
         return queue;
     }
 
@@ -148,15 +145,9 @@ public class KdTree {
             StdDraw.setPenColor(StdDraw.BLUE);
             StdDraw.line(enclosedRect.xmin(), node.point.y(), enclosedRect.xmax(), node.point.y());
         }
-        double xmin = enclosedRect.xmin();
-        double ymin = enclosedRect.ymin();
-        double xmax = enclosedRect.xmax();
-        double ymax = enclosedRect.ymax();
-        RectHV leftBranchRect = node.compX ? new RectHV(xmin, ymin, node.point.x(), ymax)
-                : new RectHV(xmin, ymin, xmax, node.point.y());
+        RectHV leftBranchRect = formLeftSubNodeEnclosedRect(node, enclosedRect);
 
-        RectHV rightBranchRect = node.compX ? new RectHV(node.point.x(), ymin, xmax, ymax)
-                : new RectHV(xmin, node.point.y(), xmax, ymax);
+        RectHV rightBranchRect = formRightSubNodeEnclosedRect(node, enclosedRect);
         drawSubTree(node.left, leftBranchRect);
         drawSubTree(node.right, rightBranchRect);
     }
