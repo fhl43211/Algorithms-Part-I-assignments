@@ -24,12 +24,7 @@ public class Solver {
         MinPQ<SolverStep> priorityQueueTwin = new MinPQ<SolverStep>();
         priorityQueue.insert(new SolverStep(initial, 0, null));
         priorityQueueTwin.insert(new SolverStep(initial.twin(), 0, null));
-        SolverStep finalStep = null;
-        Boolean twinSolvable = false;
         while (!priorityQueue.isEmpty() && !priorityQueueTwin.isEmpty()) {
-            if (_steps != -1 || twinSolvable) {
-                break;
-            }
             SolverStep topItem = priorityQueue.delMin();
             SolverStep topItemTwin = priorityQueueTwin.delMin();
             Board currentBoard = topItem.board();
@@ -44,31 +39,24 @@ public class Solver {
                 SolverStep nextStep = new SolverStep(n, step + 1, topItem);
                 if (n.isGoal()) {
                     _steps = nextStep.step();
-                    finalStep = nextStep;
-                    break;
+                    _solution = new Stack<Board>();
+                    _solution.push(nextStep.board());
+                    SolverStep prev = nextStep.prevStep();
+                    while (prev != null) {
+                        _solution.push(prev.board());
+                        prev = prev.prevStep();
+                    }
+                    return;
                 }
                 priorityQueue.insert(nextStep);
             }
-            if (_steps != -1)
-                break;
             for (Board n : currentBoardTwin.neighbors()) {
                 if (n.equals(prevBoardTwin))
                     continue;
                 if (n.isGoal()) {
-                    twinSolvable = true;
-                    finalStep = null;
-                    break;
+                    return;
                 }
                 priorityQueueTwin.insert(new SolverStep(n, stepTwin + 1, topItemTwin));
-            }
-        }
-        if (isSolvable()) {
-            _solution = new Stack<Board>();
-            _solution.push(finalStep.board());
-            SolverStep prev = finalStep.prevStep();
-            while (prev != null) {
-                _solution.push(prev.board());
-                prev = prev.prevStep();
             }
         }
     }
